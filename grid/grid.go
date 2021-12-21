@@ -2,6 +2,9 @@ package grid
 
 import (
 	"fmt"
+	"os"
+	"os/exec"
+	"runtime"
 	"tetris/shape"
 )
 
@@ -24,8 +27,9 @@ func getEmptyRow() [10]byte {
 }
 
 func GetGridState(grid *Grid) {
-	fmt.Println("----------")
+	fmt.Println(" ----------")
 	for j := 0; j < len(grid.Rows); j++ {
+		fmt.Print("|")
 		for i := 0; i < len(grid.Rows[j]); i++ {
 			cell := grid.Rows[j][i]
 			if cell == 0 {
@@ -34,9 +38,10 @@ func GetGridState(grid *Grid) {
 				fmt.Print(1)
 			}
 		}
+		fmt.Print("|")
 		fmt.Println()
 	}
-	fmt.Println("----------")
+	fmt.Println(" ----------")
 }
 
 func IntroduceShape(shape *shape.Shape, grid *Grid) *Grid {
@@ -60,4 +65,29 @@ func IntroduceShape(shape *shape.Shape, grid *Grid) *Grid {
 	grid.Rows[3][6] = shape.Rows[3][2]
 	grid.Rows[3][7] = shape.Rows[3][3]
 	return grid
+}
+
+var clear map[string]func() //create a map for storing clear funcs
+
+func init() {
+	clear = make(map[string]func()) //Initialize it
+	clear["linux"] = func() {
+		cmd := exec.Command("clear") //Linux example, its tested
+		cmd.Stdout = os.Stdout
+		cmd.Run()
+	}
+	clear["windows"] = func() {
+		cmd := exec.Command("cmd", "/c", "cls") //Windows example, its tested
+		cmd.Stdout = os.Stdout
+		cmd.Run()
+	}
+}
+
+func CallClear() {
+	value, ok := clear[runtime.GOOS] //runtime.GOOS -> linux, windows, darwin etc.
+	if ok {                          //if we defined a clear func for that platform:
+		value() //we execute it
+	} else { //unsupported platform
+		panic("Your platform is unsupported! I can't clear terminal screen :(")
+	}
 }
